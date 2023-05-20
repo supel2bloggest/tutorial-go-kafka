@@ -2,13 +2,14 @@ package main
 
 import (
 	"consumer/repositories"
+	"consumer/services"
+	"context"
 	"events"
 	"fmt"
 	"strings"
 
 	"github.com/Shopify/sarama"
 	"github.com/spf13/viper"
-	"golang.org/x/net/context"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -33,6 +34,7 @@ func initDatabase() *gorm.DB {
 		viper.GetInt("db.port"),
 		viper.GetString("db.database"),
 	)
+
 	dial := mysql.Open(dsn)
 
 	db, err := gorm.Open(dial, &gorm.Config{
@@ -41,26 +43,31 @@ func initDatabase() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	defer consumer.Close()
-
-	db := initDatabase()
-	accountRepo := repositories.NewAccountRepository(db)
+	return db
 }
 
 func main() {
+
 	consumer, err := sarama.NewConsumerGroup(viper.GetStringSlice("kafka.servers"), viper.GetString("kafka.group"), nil)
 	if err != nil {
 		panic(err)
 	}
 	defer consumer.Close()
 
-	// repositories.NewAccountRepository()
-	// services.NewConsumerHandler()
-	consumer.Consume(context.Background(), events.Topics)
+	db := initDatabase()
+	accountRepo := repositories.NewAccountRepository(db)
+	accountEventHandler := services.NewAccountEventHandler(accountRepo)
+	accountConsumerHandler := services.NewConsumerHandler(accountEventHandler)
+
+	fmt.Println("Account consumer started...")
+	for {
+		consumer.Consume(context.Background(), events.Topics, accountConsumerHandler)
+	}
 }
 
 // func main() {
-// 	servers := []string{"localhost:9092"}
+
+// 	servers := []string{"codebangkok.com:9092"}
 
 // 	consumer, err := sarama.NewConsumer(servers, nil)
 // 	if err != nil {

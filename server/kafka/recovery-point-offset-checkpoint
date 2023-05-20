@@ -9,13 +9,13 @@ __consumer_offsets 27 0
 __consumer_offsets 7 0
 __consumer_offsets 9 0
 __consumer_offsets 46 0
-yokhello 0 0
+yokhello 0 3
 __consumer_offsets 25 0
 __consumer_offsets 35 0
 __consumer_offsets 41 0
 __consumer_offsets 33 0
 __consumer_offsets 23 0
-__consumer_offsets 49 0
+__consumer_offsets 49 70
 __consumer_offsets 47 0
 __consumer_offsets 16 0
 __consumer_offsets 28 2
@@ -41,7 +41,7 @@ __consumer_offsets 20 0
 __consumer_offsets 0 0
 __consumer_offsets 44 0
 __consumer_offsets 39 0
-bondhello 0 7
+bondhello 0 13
 __consumer_offsets 12 0
 __consumer_offsets 45 0
 __consumer_offsets 1 0
