@@ -16,17 +16,18 @@ type accountEventHandler struct {
 	accountRepo repositories.AccountRepository
 }
 
-func NewAccountEventHandler(accountRepo repositories.AccountRepository) accountEventHandler {
+func NewAccountEventHandler(accountRepo repositories.AccountRepository) EventHandler {
 	return accountEventHandler{accountRepo}
 }
 
-func (obj accountEventHandler) Handler(topic string, eventBytes []byte) {
+func (obj accountEventHandler) Handle(topic string, eventBytes []byte) {
 	switch topic {
 	case reflect.TypeOf(events.OpenAccountEvent{}).Name():
-		event := events.OpenAccountEvent{}
+		event := &events.OpenAccountEvent{}
 		err := json.Unmarshal(eventBytes, event)
 		if err != nil {
 			log.Println(err)
+			return
 		}
 		bankAccount := repositories.BankAccount{
 			ID:            event.ID,
@@ -39,6 +40,7 @@ func (obj accountEventHandler) Handler(topic string, eventBytes []byte) {
 			log.Println(err)
 			return
 		}
+		log.Printf("[%v] %#v", topic, event)
 	case reflect.TypeOf(events.DepositFundEvent{}).Name():
 		event := &events.DepositFundEvent{}
 		err := json.Unmarshal(eventBytes, event)
@@ -52,12 +54,13 @@ func (obj accountEventHandler) Handler(topic string, eventBytes []byte) {
 			return
 		}
 		bankAccount.Balance += event.Amount
+
 		err = obj.accountRepo.Save(bankAccount)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-
+		log.Printf("[%v] %#v", topic, event)
 	case reflect.TypeOf(events.WithdrawFundEvent{}).Name():
 		event := &events.WithdrawFundEvent{}
 		err := json.Unmarshal(eventBytes, event)
@@ -71,12 +74,13 @@ func (obj accountEventHandler) Handler(topic string, eventBytes []byte) {
 			return
 		}
 		bankAccount.Balance -= event.Amount
+
 		err = obj.accountRepo.Save(bankAccount)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-
+		log.Printf("[%v] %#v", topic, event)
 	case reflect.TypeOf(events.CloseAccountEvent{}).Name():
 		event := &events.CloseAccountEvent{}
 		err := json.Unmarshal(eventBytes, event)
@@ -84,6 +88,12 @@ func (obj accountEventHandler) Handler(topic string, eventBytes []byte) {
 			log.Println(err)
 			return
 		}
+		err = obj.accountRepo.Delete(event.ID)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Printf("[%v] %#v", topic, event)
 	default:
 		log.Println("no event handler")
 	}

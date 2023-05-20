@@ -20,24 +20,25 @@ type accountRepository struct {
 	db *gorm.DB
 }
 
-func NewAccountRepository(db *gorm.DB) accountRepository {
-	db.Table("banks").AutoMigrate(&BankAccount{})
+func NewAccountRepository(db *gorm.DB) AccountRepository {
+	db.Table("bond_banks").AutoMigrate(&BankAccount{})
 	return accountRepository{db}
 }
 
 func (obj accountRepository) Save(bankAccount BankAccount) error {
-	return obj.db.Save(bankAccount).Error
+	return obj.db.Table("bond_banks").Save(bankAccount).Error
 }
 
 func (obj accountRepository) Delete(id string) error {
-	return obj.db.Where("id=?", id).Delete(&BankAccount{}).Error
+	return obj.db.Table("bond_banks").Where("id=?", id).Delete(&BankAccount{}).Error
 }
 
-func (obj accountRepository) FindAll(bankAccounts []BankAccount) error {
-	return obj.db.Find(&bankAccounts).Error
+func (obj accountRepository) FindAll() (bankAccounts []BankAccount, err error) {
+	err = obj.db.Table("bond_banks").Find(&bankAccounts).Error
+	return bankAccounts, err
 }
 
 func (obj accountRepository) FindByID(id string) (bankAccount BankAccount, err error) {
-	err = obj.db.Where("id=?", id).First(&bankAccount).Error
+	err = obj.db.Table("bond_banks").Where("id=?", id).First(&bankAccount).Error
 	return bankAccount, err
 }

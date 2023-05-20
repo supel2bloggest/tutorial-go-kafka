@@ -18,7 +18,7 @@ func (obj consumerHandler) Cleanup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (obj consumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.Consumer) error {
+func (obj consumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
 		obj.eventHandler.Handle(msg.Topic, msg.Value)
 		session.MarkMessage(msg, "")
